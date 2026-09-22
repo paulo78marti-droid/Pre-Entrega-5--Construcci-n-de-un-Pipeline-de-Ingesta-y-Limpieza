@@ -1,45 +1,40 @@
 """
-Módulo principal del Pipeline ETL (Extracción, Transformación y Carga).
-Coordina la lectura de archivos, invoca el módulo de transformaciones
-y exporta los datos en formato Parquet.
+Módulo Orquestador del Pipeline ETL (Extracción, Transformación y Carga).
+Importa la lógica modular de ingesta (src.extract), limpieza (src.transformations)
+y carga en formato Parquet (src.load).
 """
 
-import os
 import pandas as pd
+from src.extract import extraer_datos_csv
 from src.transformations import aplicar_transformaciones
-
-
-def extraer_datos(filepath: str) -> pd.DataFrame:
-    """
-    Etapa E: Extrae los datos desde un archivo CSV.
-    """
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"El archivo de entrada no existe en la ruta: {filepath}")
-        
-    print(f"[EXTRACCIÓN] Leyendo datos desde '{filepath}'...")
-    df = pd.read_csv(filepath)
-    print(f"[EXTRACCIÓN] Registros leídos correctamente: {len(df)} filas, {len(df.columns)} columnas.")
-    return df
-
-
-def cargar_datos(df: pd.DataFrame, output_path: str) -> None:
-    """
-    Etapa L: Carga los datos transformados a un archivo en formato Parquet.
-    """
-    print(f"[CARGA] Exportando datos procesados a formato Parquet: '{output_path}'...")
-    output_dir = os.path.dirname(output_path)
-    if output_dir and not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-        
-    df.to_parquet(output_path, index=False)
-    print(f"[CARGA] Archivo Parquet generado exitosamente en '{output_path}'.")
+from src.load import cargar_datos_parquet
 
 
 def ejecutar_pipeline(input_path: str, output_path: str) -> pd.DataFrame:
     """
-    Ejecuta la secuencia completa del pipeline ETL.
+    Ejecuta la secuencia completa e integrada del Pipeline ETL:
+    1. Ingesta desde CSV.
+    2. Limpieza de duplicados, normalización e imputación justificada de nulos.
+    3. Carga en archivo Parquet con justificación técnica para Machine Learning.
+    
+    Args:
+        input_path (str): Ruta al archivo de datos de origen (CSV).
+        output_path (str): Ruta donde se exportará el resultado (Parquet).
+        
+    Returns:
+        pd.DataFrame: DataFrame transformado resultante.
     """
-    df_raw = extraer_datos(input_path)
+    print("\n" + "=" * 60)
+    print(" INICIANDO EJECUCIÓN DEL PIPELINE ETL (VENTAS STARBUCKS)")
+    print("=" * 60)
+    
+    # 1. Extracción
+    df_raw = extraer_datos_csv(input_path)
+    
+    # 2. Transformación
     df_clean = aplicar_transformaciones(df_raw)
-    cargar_datos(df_clean, output_path)
+    
+    # 3. Carga
+    cargar_datos_parquet(df_clean, output_path)
+    
     return df_clean

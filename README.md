@@ -8,23 +8,27 @@
 
 ## 📌 Descripción del Proyecto
 
-Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos ETL automatizado** en Python utilizando **Pandas**. El pipeline procesa un dataset de transacciones de ventas de Starbucks, aplicando etapas modulares para:
-1. Normalización de nombres de columnas (formato `snake_case`).
-2. Remoción justificada de registros duplicados.
-3. Gestión e imputación justificada de valores nulos.
-4. Exportación final de datos procesados en formato comprimido de alto rendimiento **Parquet**.
+Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos ETL automatizado** en Python utilizando **Pandas** y **PyArrow**. El pipeline procesa transacciones de ventas de Starbucks mediante módulos desacoplados para:
+1. **Extracción**: Lectura modular de archivos CSV de origen.
+2. **Transformación**:
+   - Normalización de encabezados a formato `snake_case`.
+   - Remoción de registros duplicados.
+   - Imputación justificada de valores nulos.
+3. **Carga**: Exportación optimizada en formato **Parquet**.
 
 ---
 
 ## 📁 Estructura Modular del Repositorio
 
 ```text
-├── main.py                     # Script principal para ejecución del pipeline
-├── src/                        # Módulos de lógica del pipeline
+├── main.py                     # Script principal de ejecución del pipeline
+├── src/                        # Módulos de lógica modular del pipeline
 │   ├── __init__.py             # Inicializador de paquete Python
-│   ├── etl_pipeline.py         # Coordinador de etapas ETL (Extracción y Carga)
-│   └── transformations.py      # Módulo independiente de limpieza y transformaciones
-├── data/                       # Gestión de datos
+│   ├── extract.py              # Módulo de Extracción (Ingesta desde CSV)
+│   ├── transformations.py      # Módulo de Transformaciones (Limpieza, nulos y duplicados)
+│   ├── load.py                 # Módulo de Carga (Exportación a Parquet con justificación ML)
+│   └── etl_pipeline.py         # Orquestador del flujo ETL
+├── data/                       # Gestión de datos (Raw y Output)
 │   ├── raw/
 │   │   └── ventas_starbucks.csv # Dataset original con nulos y duplicados
 │   └── output/                 # Salida procesada en formato Parquet
@@ -36,21 +40,24 @@ Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos
 
 ---
 
-## ⚙️ Funciones de Transformación y Justificaciones (`src/transformations.py`)
+## 💡 ¿Por qué Parquet es más eficiente para Machine Learning?
 
-La lógica de transformación se encuentra encapsulada en funciones independientes dentro del módulo `src/transformations.py`:
+El formato **Parquet** ofrece ventajas críticas sobre formatos tradicionales orientados a texto como CSV o JSON cuando se preparan datos para modelos de **Machine Learning**:
 
-- **`normalizar_nombres_columnas`**:
-  - Convierte nombres de columnas a minúsculas, remueve espacios y tildes, aplicando formato `snake_case`.
-  - *Justificación*: Previene errores de sintaxis y asegura consistencia programática.
-- **`eliminar_duplicados`**:
-  - Identifica y elimina filas idénticas mediante `drop_duplicates()`.
-  - *Justificación*: Evita la sobreestimación de ventas e ingresos en métricas financieras.
-- **`gestionar_valores_nulos`**:
-  - `monto_total`: Imputado derivando dinámicamente el producto `precio_unitario * cantidad`.
-  - `categoria`: Imputado con `'Sin Categoría'`.
-  - `metodo_pago`: Imputado con `'No Especificado'`.
-  - *Justificación*: Permite recuperar información fáctica exacta sin descartar transacciones válidas para análisis.
+1. **Almacenamiento Orientado a Columnas (Columnar Storage)**:
+   - CSV guarda los datos fila por fila. Si un modelo de ML requiere entrenar solo con 5 características (*features*) de una tabla de 100 columnas, un CSV obliga a leer las 100 columnas del disco.
+   - Parquet permite realizar *projection pushdown*, leyendo del disco **únicamente las columnas necesarias**, reduciendo radicalmente el uso de memoria RAM y el tiempo de lectura (I/O).
+
+2. **Preservación del Esquema y Tipos de Datos**:
+   - Guarda el esquema en metadatos binarios (tipos `datetime`, `int64`, `float64`).
+   - Evita la necesidad de re-inferir tipos o castear cadenas a números cada vez que se carga el dataset en Pandas, Scikit-Learn o PyTorch, previniendo errores de precisión.
+
+3. **Alta Compresión por Columna**:
+   - Al agrupar valores del mismo tipo de dato en bloques contiguos, Parquet logra tasas de compresión de hasta un 75%-80% mediante algoritmos como Snappy o Gzip.
+   - Esto reduce drásticamente el costo de almacenamiento en la nube (ej. AWS S3) y acelera las transferencias por red.
+
+4. **Compatibilidad con Marcos de Computación Distribuida**:
+   - Es el estándar nativo para herramientas de alto rendimiento y Big Data como **Apache Spark**, **Dask**, **Polars** y **DuckDB**, permitiendo entrenamiento distribuido y procesamiento en paralelo sin cuellos de botella.
 
 ---
 
@@ -72,4 +79,4 @@ Ejecuta el script principal desde la raíz del repositorio:
 python main.py
 ```
 
-Al finalizar la ejecución, se mostrará en consola el detalle del proceso de limpieza y se generará el archivo `data/output/ventas_starbucks_limpio.parquet`.
+Al finalizar la ejecución, el script mostrará en consola el reporte de ingesta, transformación y la justificación de carga, generando el archivo Parquet en `data/output/ventas_starbucks_limpio.parquet`.
