@@ -1,82 +1,153 @@
-# Pipeline de Ingesta, Limpieza y Transformación (ETL) - Ventas Starbucks
+# ☕ Pipeline de Ingesta, Limpieza y Transformación (ETL) - Ventas Starbucks
 
 **Curso:** Data Science II  
 **Entregable:** Pre-Entrega 5 - Construcción de un Pipeline de Ingesta y Limpieza  
-**Nivel:** Principiante Inicial  
+**Nivel del Entregable:** Principiante Inicial (Nivel 2)  
+
+---
+
+## 📋 Tabla de Contenidos
+- [📌 Descripción del Proyecto](#-descripción-del-proyecto)
+- [📁 Estructura del Repositorio](#-estructura-del-repositorio)
+- [⚙️ Descripción Detallada de las Etapas del Pipeline](#️-descripción-detallada-de-las-etapas-del-pipeline)
+  - [1. Extracción (`src/extract.py`)](#1-extracción-srcextractpy)
+  - [2. Transformación (`src/transformations.py`)](#2-transformación-srctransformationspy)
+  - [3. Carga (`src/load.py`)](#3-carga-srcloadpy)
+- [💡 Justificación del Formato Parquet para Machine Learning](#-justificación-del-formato-parquet-para-machine-learning)
+- [🛠️ Requisitos e Instalación de Dependencias](#️-requisitos-e-instalación-de-dependencias)
+- [🚀 Instrucciones de Ejecución Paso a Paso](#-instrucciones-de-ejecución-paso-a-paso)
 
 ---
 
 ## 📌 Descripción del Proyecto
 
-Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos ETL automatizado** en Python utilizando **Pandas** y **PyArrow**. El pipeline procesa transacciones de ventas de Starbucks mediante módulos desacoplados para:
-1. **Extracción**: Lectura modular de archivos CSV de origen.
-2. **Transformación**:
-   - Normalización de encabezados a formato `snake_case`.
-   - Remoción de registros duplicados.
-   - Imputación justificada de valores nulos.
-3. **Carga**: Exportación optimizada en formato **Parquet**.
+El objetivo de esta actividad es diseñar e implementar un **pipeline de datos automatizado (ETL)** aplicando librerías de alto rendimiento como **Pandas** y **PyArrow**. El pipeline procesa un conjunto de datos de transacciones de ventas de Starbucks, aplicando conceptos de **modularización**, **eficiencia en el manejo de volúmenes de datos crecientes** y **buenas prácticas de código**.
 
 ---
 
-## 📁 Estructura Modular del Repositorio
+## 📁 Estructura del Repositorio
+
+El proyecto cumple estrictamente con el principio de modularización, separando el script principal de ejecución de los módulos de lógica interna:
 
 ```text
-├── main.py                     # Script principal de ejecución del pipeline
-├── src/                        # Módulos de lógica modular del pipeline
-│   ├── __init__.py             # Inicializador de paquete Python
-│   ├── extract.py              # Módulo de Extracción (Ingesta desde CSV)
-│   ├── transformations.py      # Módulo de Transformaciones (Limpieza, nulos y duplicados)
-│   ├── load.py                 # Módulo de Carga (Exportación a Parquet con justificación ML)
-│   └── etl_pipeline.py         # Orquestador del flujo ETL
-├── data/                       # Gestión de datos (Raw y Output)
+Pre-Entrega 5- Construcción de un Pipeline de Ingesta y Limpieza/
+├── main.py                     # Script principal para la ejecución del pipeline
+├── src/                        # Paquete con los módulos de lógica modular
+│   ├── __init__.py             # Identificador de paquete Python
+│   ├── extract.py              # Módulo de Ingesta / Extracción de datos
+│   ├── transformations.py      # Módulo independiente de limpieza y transformaciones
+│   ├── load.py                 # Módulo de Carga (Exportación a Parquet)
+│   └── etl_pipeline.py         # Orquestador que coordina el flujo ETL completo
+├── data/                       # Almacenamiento de datos
 │   ├── raw/
 │   │   └── ventas_starbucks.csv # Dataset original con nulos y duplicados
-│   └── output/                 # Salida procesada en formato Parquet
+│   └── output/                 # Archivos finales procesados (generado automáticamente)
+│       └── ventas_starbucks_limpio.parquet
 ├── Objetivos de la pre-entrega.md
-├── requirements.txt            # Dependencias del proyecto (pandas, pyarrow)
-├── .gitignore                  # Reglas de exclusión de Git
-└── README.md                   # Documentación técnica del proyecto
+├── requirements.txt            # Dependencias necesarias para ejecutar el proyecto
+├── .gitignore                  # Archivos ignorados por Git
+└── README.md                   # Documentación técnica completa
 ```
 
 ---
 
-## 💡 ¿Por qué Parquet es más eficiente para Machine Learning?
+## ⚙️ Descripción Detallada de las Etapas del Pipeline
 
-El formato **Parquet** ofrece ventajas críticas sobre formatos tradicionales orientados a texto como CSV o JSON cuando se preparan datos para modelos de **Machine Learning**:
+### 1. Extracción (`src/extract.py`)
+- **Función:** `extraer_datos_csv(filepath)`
+- **Descripción:** Se encarga de la ingesta modular del archivo CSV localizado en `data/raw/ventas_starbucks.csv`. Verifica la existencia del archivo de origen y lo carga en un DataFrame de Pandas reportando la cantidad inicial de filas y columnas.
 
-1. **Almacenamiento Orientado a Columnas (Columnar Storage)**:
-   - CSV guarda los datos fila por fila. Si un modelo de ML requiere entrenar solo con 5 características (*features*) de una tabla de 100 columnas, un CSV obliga a leer las 100 columnas del disco.
-   - Parquet permite realizar *projection pushdown*, leyendo del disco **únicamente las columnas necesarias**, reduciendo radicalmente el uso de memoria RAM y el tiempo de lectura (I/O).
+### 2. Transformación (`src/transformations.py`)
+Contiene la lógica de limpieza dividida en funciones independientes:
+- **Normalización de Nombres de Columnas (`normalizar_nombres_columnas`)**:
+  - Convierte todos los encabezados a minúsculas, remueve acentos/tildes y sustituye espacios por guiones bajos (`snake_case`).
+  - *Justificación:* Previene errores tipográficos y facilita el acceso programático a las columnas.
+- **Remoción de Duplicados (`eliminar_duplicados`)**:
+  - Detecta y elimina filas idénticas usando `drop_duplicates()`.
+  - *Justificación:* Evita distorsiones estadísticas e ingresos sobreestimados en el análisis financiero.
+- **Tratamiento Justificado de Valores Nulos (`gestionar_valores_nulos`)**:
+  - **`monto_total`**: Se imputa calculando `precio_unitario * cantidad`. *Justificación:* Es una relación matemática exacta que permite recuperar el dato factual sin descartar la transacción.
+  - **`categoria`**: Se imputa con la etiqueta `'Sin Categoría'`. *Justificación:* Permite mantener el registro de venta sin perder información cuantitativa.
+  - **`metodo_pago`**: Se imputa con la etiqueta `'No Especificado'`. *Justificación:* Conserva la trazabilidad del ticket de compra.
+- **Formateo de Fechas**: Conversión de la columna `fecha` al tipo de dato `datetime64[ns]`.
 
-2. **Preservación del Esquema y Tipos de Datos**:
-   - Guarda el esquema en metadatos binarios (tipos `datetime`, `int64`, `float64`).
-   - Evita la necesidad de re-inferir tipos o castear cadenas a números cada vez que se carga el dataset en Pandas, Scikit-Learn o PyTorch, previniendo errores de precisión.
-
-3. **Alta Compresión por Columna**:
-   - Al agrupar valores del mismo tipo de dato en bloques contiguos, Parquet logra tasas de compresión de hasta un 75%-80% mediante algoritmos como Snappy o Gzip.
-   - Esto reduce drásticamente el costo de almacenamiento en la nube (ej. AWS S3) y acelera las transferencias por red.
-
-4. **Compatibilidad con Marcos de Computación Distribuida**:
-   - Es el estándar nativo para herramientas de alto rendimiento y Big Data como **Apache Spark**, **Dask**, **Polars** y **DuckDB**, permitiendo entrenamiento distribuido y procesamiento en paralelo sin cuellos de botella.
+### 3. Carga (`src/load.py`)
+- **Función:** `cargar_datos_parquet(df, output_path)`
+- **Descripción:** Crea la carpeta de salida si no existe y exporta el DataFrame procesado a un archivo comprimido Parquet (`data/output/ventas_starbucks_limpio.parquet`).
 
 ---
 
-## 🛠️ Instalación de Dependencias
+## 💡 Justificación del Formato Parquet para Machine Learning
 
-Para instalar las dependencias requeridas en tu entorno virtual:
+El formato **Parquet** es el estándar moderno en Data Science y Machine Learning debido a:
 
+1. **Almacenamiento Orientado a Columnas (Columnar Storage)**: Permite leer únicamente las características (*features*) necesarias para entrenar un modelo sin cargar todo el dataset en memoria RAM.
+2. **Preservación Integrada del Esquema**: Mantiene los tipos de datos exactos (`datetime`, `int64`, `float64`), evitando errores de casteo al recargar con Pandas o Scikit-Learn.
+3. **Alta Compresión y Eficiencia de I/O**: Reduce el tamaño del archivo hasta en un 80% mediante compresión Snappy, disminuyendo costos de almacenamiento y agilizando la transferencia en red.
+4. **Compatibilidad con Big Data**: Integración nativa con Apache Spark, Dask, Polars y DuckDB.
+
+---
+
+## 🛠️ Requisitos e Instalación de Dependencias
+
+### Prerrequisitos
+- Python 3.8 o superior instalado.
+
+### Paso 1: Clonar el repositorio
+```bash
+git clone https://github.com/TU_USUARIO/REPOSITORIO.git
+cd REPOSITORIO
+```
+
+### Paso 2: Crear e iniciar un entorno virtual (Opcional recomendado)
+En Windows (PowerShell):
+```powershell
+python -m venv venv
+.\venv\Scripts\activate
+```
+
+### Paso 3: Instalar dependencias
 ```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## 🚀 Instrucciones de Ejecución
+## 🚀 Instrucciones de Ejecución Paso a Paso
 
-Ejecuta el script principal desde la raíz del repositorio:
+Para ejecutar el pipeline de principio a fin, corre el script `main.py` en la raíz del proyecto:
 
 ```bash
 python main.py
 ```
 
-Al finalizar la ejecución, el script mostrará en consola el reporte de ingesta, transformación y la justificación de carga, generando el archivo Parquet en `data/output/ventas_starbucks_limpio.parquet`.
+### Salida esperada en la consola:
+```text
+============================================================
+ INICIANDO EJECUCIÓN DEL PIPELINE ETL (VENTAS STARBUCKS)
+============================================================
+[EXTRACCIÓN] Leyendo datos desde el origen CSV: '.../data/raw/ventas_starbucks.csv'...
+[EXTRACCIÓN] ✓ Ingesta exitosa: 14 filas y 9 columnas leídas.
+
+--- INICIO DE ETAPA DE TRANSFORMACIÓN ---
+[NORMALIZACIÓN] Nombres de columnas normalizados a snake_case: ['transaction_id', 'fecha', 'tienda_id', 'producto', 'categoria', 'precio_unitario', 'cantidad', 'monto_total', 'metodo_pago']
+[DUPLICADOS] Registros duplicados detectados: 2
+[DUPLICADOS] 2 registros duplicados eliminados exitosamente.
+[NULOS] Conteo inicial de valores nulos por columna:
+  - Columna 'categoria': 1 nulos
+  - Columna 'monto_total': 2 nulos
+  - Columna 'metodo_pago': 1 nulos
+  ✓ [IMPUTACIÓN CALCULADA] Imputados 2 valores en 'monto_total' mediante (precio_unitario * cantidad).
+  ✓ [IMPUTACIÓN CATEGÓRICA] Imputados 1 valores en 'categoria' como 'Sin Categoría'.
+  ✓ [IMPUTACIÓN CATEGÓRICA] Imputados 1 valores en 'metodo_pago' como 'No Especificado'.
+--- FIN DE ETAPA DE TRANSFORMACIÓN ---
+
+[CARGA] Exportando datos procesados a formato Parquet en: '.../data/output/ventas_starbucks_limpio.parquet'...
+[CARGA] ✓ Carga finalizada correctamente. Archivo '.parquet' generado.
+============================================================
+ ¡Pipeline finalizado con éxito!
+ Total de registros procesados y guardados: 12
+============================================================
+```
+
+El archivo Parquet procesado estará listo en `data/output/ventas_starbucks_limpio.parquet`.
