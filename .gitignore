@@ -1,15 +1,23 @@
-# Python
+# Python / Cache
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Entornos virtuales
 .venv/
 env/
 venv/
+ENV/
 
-# Environment / IDE
+# IDEs y SO
 .vscode/
 .idea/
+.DS_Store
 
-# Data outputs (evitar subir grandes volúmenes de datos procesados al repo)
-data/output/*.parquet
+# DATOS: Ignorar datasets originales pesados y archivos de salida procesados
+data/raw/*
+!data/raw/.gitkeep
+data/output/*
+!data/output/.gitkeep
+*.csv
 *.parquet
