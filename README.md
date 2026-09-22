@@ -8,64 +8,68 @@
 
 ## 📌 Descripción del Proyecto
 
-Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos ETL automatizado** utilizando **Pandas**. El pipeline procesa datos de transacciones de ventas de Starbucks, aplicando transformaciones para la limpieza de registros duplicados, tratamiento de valores nulos e imputación de datos faltantes, y finalmente exporta los resultados limpios en formato comprimido y eficiente **Parquet**.
+Este proyecto consiste en el diseño e implementación de un **Pipeline de Datos ETL automatizado** en Python utilizando **Pandas**. El pipeline procesa un dataset de transacciones de ventas de Starbucks, aplicando etapas modulares para:
+1. Normalización de nombres de columnas (formato `snake_case`).
+2. Remoción justificada de registros duplicados.
+3. Gestión e imputación justificada de valores nulos.
+4. Exportación final de datos procesados en formato comprimido de alto rendimiento **Parquet**.
 
 ---
 
-## 📁 Estructura del Repositorio
+## 📁 Estructura Modular del Repositorio
 
 ```text
-├── main.py                     # Script principal de ejecución del pipeline
-├── src/                        # Módulos de lógica modular del pipeline
+├── main.py                     # Script principal para ejecución del pipeline
+├── src/                        # Módulos de lógica del pipeline
 │   ├── __init__.py             # Inicializador de paquete Python
-│   └── etl_pipeline.py         # Funciones modulares de Extracción, Transformación y Carga
-├── data/                       # Gestión de datos (Raw y Output)
+│   ├── etl_pipeline.py         # Coordinador de etapas ETL (Extracción y Carga)
+│   └── transformations.py      # Módulo independiente de limpieza y transformaciones
+├── data/                       # Gestión de datos
 │   ├── raw/
-│   │   └── ventas_starbucks.csv # Dataset original de ventas
-│   └── output/                 # Salida generada por el script (Parquet)
+│   │   └── ventas_starbucks.csv # Dataset original con nulos y duplicados
+│   └── output/                 # Salida procesada en formato Parquet
 ├── Objetivos de la pre-entrega.md
-├── requirements.txt            # Dependencias del proyecto
-├── .gitignore                  # Exclusiones para control de versiones Git
-└── README.md                   # Documentación técnica del repositorio
+├── requirements.txt            # Dependencias del proyecto (pandas, pyarrow)
+├── .gitignore                  # Reglas de exclusión de Git
+└── README.md                   # Documentación técnica del proyecto
 ```
 
 ---
 
-## ⚙️ Etapas del Pipeline ETL
+## ⚙️ Funciones de Transformación y Justificaciones (`src/transformations.py`)
 
-1. **Extracción (`extraer_datos`)**:
-   - Ingesta del archivo CSV localizado en `data/raw/ventas_starbucks.csv`.
-2. **Transformación (`transformar_datos`)**:
-   - **Eliminación de duplicados**: Detección y remoción de filas exactamente iguales (`drop_duplicates`).
-   - **Tratamiento de valores nulos**:
-     - Imputación de `monto_total` calculando `precio_unitario * cantidad`.
-     - Imputación de columnas categóricas (`categoria` -> `'Sin Categoría'`, `metodo_pago` -> `'No Especificado'`).
-   - **Casteo de tipos**: Conversión de columna `fecha` a formato `datetime`.
-3. **Carga (`cargar_datos`)**:
-   - Creación automática del directorio de salida y guardado del DataFrame resultante en formato de alto rendimiento **Parquet** (`.parquet`).
+La lógica de transformación se encuentra encapsulada en funciones independientes dentro del módulo `src/transformations.py`:
+
+- **`normalizar_nombres_columnas`**:
+  - Convierte nombres de columnas a minúsculas, remueve espacios y tildes, aplicando formato `snake_case`.
+  - *Justificación*: Previene errores de sintaxis y asegura consistencia programática.
+- **`eliminar_duplicados`**:
+  - Identifica y elimina filas idénticas mediante `drop_duplicates()`.
+  - *Justificación*: Evita la sobreestimación de ventas e ingresos en métricas financieras.
+- **`gestionar_valores_nulos`**:
+  - `monto_total`: Imputado derivando dinámicamente el producto `precio_unitario * cantidad`.
+  - `categoria`: Imputado con `'Sin Categoría'`.
+  - `metodo_pago`: Imputado con `'No Especificado'`.
+  - *Justificación*: Permite recuperar información fáctica exacta sin descartar transacciones válidas para análisis.
 
 ---
 
 ## 🛠️ Instalación de Dependencias
 
-Se recomienda utilizar un entorno virtual de Python. Para instalar las dependencias requeridas, ejecuta:
+Para instalar las dependencias requeridas en tu entorno virtual:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Las dependencias principales son:
-- `pandas`
-- `pyarrow` (requerido para soporte con archivos `.parquet`)
-
 ---
 
 ## 🚀 Instrucciones de Ejecución
 
-Para correr el pipeline ETL completo, ejecuta el archivo principal `main.py` desde la raíz del proyecto:
+Ejecuta el script principal desde la raíz del repositorio:
 
 ```bash
 python main.py
 ```
 
-Al finalizar, el script mostrará en consola el reporte de limpieza y generará el archivo Parquet en `data/output/ventas_starbucks_limpio.parquet`.
+Al finalizar la ejecución, se mostrará en consola el detalle del proceso de limpieza y se generará el archivo `data/output/ventas_starbucks_limpio.parquet`.
