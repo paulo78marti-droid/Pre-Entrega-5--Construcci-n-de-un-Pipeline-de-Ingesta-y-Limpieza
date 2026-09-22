@@ -1,50 +1,29 @@
 """
-Pipeline ETL - Ventas Starbucks (Script Auto-contenido para Google Colab / Python Standalone)
+Pipeline ETL - Ventas Starbucks (Script Auto-contenido con Kagglehub)
+Dataset: guadalupesaraviaweht/ventas-starbucks
 Curso: Data Science II - Pre-Entrega 5
-
-Instrucciones para ejecucción en Google Colab:
-1. Subir este archivo o copiar el contenido en una celda de código de Google Colab.
-2. Ejecutar la celda para correr la ingesta, limpieza y generación del archivo Parquet.
 """
 
 import os
+import glob
 import unicodedata
 import pandas as pd
+import kagglehub
 
 
-# -------------------------------------------------------------------------
-# 1. CREACIÓN DEL DATASET LOCAL DE PRUEBA EN COLAB
-# -------------------------------------------------------------------------
-def preparar_entorno_y_datos():
-    os.makedirs("data/raw", exist_ok=True)
-    os.makedirs("data/output", exist_ok=True)
+def descargar_dataset_kaggle() -> str:
+    print("[KAGGLE] Descargando la última versión del dataset 'guadalupesaraviaweht/ventas-starbucks'...")
+    path = kagglehub.dataset_download("guadalupesaraviaweht/ventas-starbucks")
+    print(f"[KAGGLE] ✓ Dataset descargado en: '{path}'")
     
-    csv_content = """transaction_id,fecha,tienda_id,producto,categoria,precio_unitario,cantidad,monto_total,metodo_pago
-TXN-1001,2024-03-01 08:15:00,STB-01,Caffè Latte,Bebida Caliente,4.50,1,4.50,App Starbucks
-TXN-1002,2024-03-01 08:22:00,STB-01,Caramel Macchiato,Bebida Caliente,5.20,2,10.40,Tarjeta
-TXN-1003,2024-03-01 08:45:00,STB-02,Iced Americano,Bebida Fría,3.80,1,3.80,Efectivo
-TXN-1004,2024-03-01 09:10:00,STB-01,Croissant de Almendras,Comida,3.50,1,3.50,Tarjeta
-TXN-1005,2024-03-01 09:30:00,STB-03,Java Chip Frappuccino,Bebida Fría,5.80,2,,App Starbucks
-TXN-1006,2024-03-01 09:55:00,STB-02,Espresso Double,Bebida Caliente,3.20,1,3.20,Tarjeta
-TXN-1002,2024-03-01 08:22:00,STB-01,Caramel Macchiato,Bebida Caliente,5.20,2,10.40,Tarjeta
-TXN-1007,2024-03-01 10:15:00,STB-01,Muffin de Arándanos,Comida,3.00,1,3.00,
-TXN-1008,2024-03-01 10:40:00,STB-03,Cold Brew,Bebida Fría,4.20,1,4.20,Efectivo
-TXN-1009,2024-03-01 11:05:00,STB-02,Green Tea Latte,,4.80,1,4.80,App Starbucks
-TXN-1010,2024-03-01 11:30:00,STB-01,Caffè Mocha,Bebida Caliente,5.00,3,15.00,Tarjeta
-TXN-1005,2024-03-01 09:30:00,STB-03,Java Chip Frappuccino,Bebida Fría,5.80,2,,App Starbucks
-TXN-1011,2024-03-01 12:00:00,STB-02,Panini de Pavo,Comida,6.50,1,6.50,Efectivo
-TXN-1012,2024-03-01 12:25:00,STB-03,Chai Tea Latte,Bebida Caliente,4.60,1,,Tarjeta
-"""
-    input_path = "data/raw/ventas_starbucks.csv"
-    with open(input_path, "w", encoding="utf-8") as f:
-        f.write(csv_content)
-    print(f"✓ Dataset de prueba preparado en '{input_path}'.")
-    return input_path
+    csv_files = glob.glob(os.path.join(path, "*.csv"))
+    if csv_files:
+        print(f"[KAGGLE] Archivo CSV encontrado: '{csv_files[0]}'")
+        return csv_files[0]
+    else:
+        raise FileNotFoundError("No se encontró ningún archivo .csv en la ruta descargada de Kaggle.")
 
 
-# -------------------------------------------------------------------------
-# 2. FUNCIONES MODULARES ETL
-# -------------------------------------------------------------------------
 def extraer_datos_csv(filepath: str) -> pd.DataFrame:
     print(f"[EXTRACCIÓN] Leyendo origen: '{filepath}'...")
     df = pd.read_csv(filepath)
@@ -71,26 +50,36 @@ def eliminar_duplicados(df: pd.DataFrame) -> pd.DataFrame:
     if cant_dup > 0:
         df_res = df_res.drop_duplicates()
         print(f"[DUPLICADOS] ✓ {cant_dup} duplicados eliminados.")
+    else:
+        print("[DUPLICADOS] ✓ No se encontraron registros duplicados.")
     return df_res
 
 
 def gestionar_valores_nulos(df: pd.DataFrame) -> pd.DataFrame:
     df_res = df.copy()
-    # Imputación matemática de monto_total
-    if 'monto_total' in df_res.columns and 'precio_unitario' in df_res.columns and 'cantidad' in df_res.columns:
-        mask_nulo = df_res['monto_total'].isnull()
+    # Imputación estructural en 'tamano'
+    if 'tamano' in df_res.columns:
+        nulos_tam = df_res['tamano'].isnull().sum()
+        if nulos_tam > 0:
+            df_res['tamano'] = df_res['tamano'].fillna('No Aplica')
+            print(f"  ✓ [IMPUTACIÓN ESTRUCTURAL] Imputados {nulos_tam} nulos en 'tamano' como 'No Aplica'.")
+            
+    # Imputación matemática de total_venta
+    if 'total_venta' in df_res.columns and 'precio_unitario' in df_res.columns and 'cantidad' in df_res.columns:
+        mask_nulo = df_res['total_venta'].isnull()
         if mask_nulo.sum() > 0:
-            df_res.loc[mask_nulo, 'monto_total'] = (
+            df_res.loc[mask_nulo, 'total_venta'] = (
                 df_res.loc[mask_nulo, 'precio_unitario'] * df_res.loc[mask_nulo, 'cantidad']
             )
-            print(f"  ✓ [IMPUTACIÓN] Imputados {mask_nulo.sum()} valores en 'monto_total' mediante (precio * cantidad).")
+            print(f"  ✓ [IMPUTACIÓN CALCULADA] Imputados {mask_nulo.sum()} nulos en 'total_venta' mediante (precio * cantidad).")
             
     # Imputación categórica
-    if 'categoria' in df_res.columns:
-        df_res['categoria'] = df_res['categoria'].fillna('Sin Categoría')
-    if 'metodo_pago' in df_res.columns:
-        df_res['metodo_pago'] = df_res['metodo_pago'].fillna('No Especificado')
-        
+    for col in ['categoria_producto', 'metodo_de_pago', 'metodo_de_compra']:
+        if col in df_res.columns and df_res[col].isnull().sum() > 0:
+            cnt = df_res[col].isnull().sum()
+            df_res[col] = df_res[col].fillna('No Especificado')
+            print(f"  ✓ [IMPUTACIÓN CATEGÓRICA] Imputados {cnt} nulos en '{col}' como 'No Especificado'.")
+            
     if 'fecha' in df_res.columns:
         df_res['fecha'] = pd.to_datetime(df_res['fecha'])
         
@@ -108,6 +97,9 @@ def aplicar_transformaciones(df: pd.DataFrame) -> pd.DataFrame:
 
 def cargar_datos_parquet(df: pd.DataFrame, output_path: str) -> None:
     print(f"[CARGA] Exportando datos procesados a Parquet: '{output_path}'...")
+    output_dir = os.path.dirname(output_path)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
     df.to_parquet(output_path, index=False, engine='pyarrow')
     kb = os.path.getsize(output_path) / 1024
     print(f"[CARGA] ✓ Archivo Parquet generado exitosamente ({kb:.2f} KB).")
@@ -120,15 +112,12 @@ def ejecutar_pipeline(input_path: str, output_path: str) -> pd.DataFrame:
     return df_clean
 
 
-# -------------------------------------------------------------------------
-# 3. EJECUCIÓN PRINCIPAL
-# -------------------------------------------------------------------------
 if __name__ == "__main__":
     print("==================================================")
-    print(" PIPELINE ETL - VENTAS STARBUCKS (GOOGLE COLAB)")
+    print(" PIPELINE ETL - VENTAS STARBUCKS (KAGGLE DATASET)")
     print("==================================================")
     
-    input_csv = preparar_entorno_y_datos()
+    input_csv = descargar_dataset_kaggle()
     output_parquet = "data/output/ventas_starbucks_limpio.parquet"
     
     df_final = ejecutar_pipeline(input_csv, output_parquet)
