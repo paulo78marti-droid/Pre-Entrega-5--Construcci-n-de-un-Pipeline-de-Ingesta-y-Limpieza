@@ -1,6 +1,7 @@
 """
-Módulo de Extracción (Extract) para el Pipeline ETL.
-Encargado de la ingesta modular de datos desde fuentes en formato CSV.
+Módulo de Extracción (Extract) - Pipeline ETL
+Encargado de la ingesta modular de datos desde un archivo CSV
+asegurando el uso correcto de memoria.
 """
 
 import os
@@ -9,10 +10,10 @@ import pandas as pd
 
 def extraer_datos_csv(filepath: str) -> pd.DataFrame:
     """
-    Etapa E: Extrae los datos desde un archivo CSV.
+    Etapa E (Extract): Lee el conjunto de datos desde un archivo CSV.
 
     Args:
-        filepath (str): Ruta relativa o absoluta al archivo CSV de entrada.
+        filepath (str): Ruta al archivo CSV de entrada.
 
     Returns:
         pd.DataFrame: DataFrame con los datos originales cargados.
@@ -22,5 +23,8 @@ def extraer_datos_csv(filepath: str) -> pd.DataFrame:
         
     print(f"[EXTRACCIÓN] Leyendo datos desde el origen CSV: '{filepath}'...")
     df = pd.read_csv(filepath)
-    print(f"[EXTRACCIÓN] ✓ Ingesta exitosa: {len(df)} filas y {len(df.columns)} columnas leídas.")
+    
+    # Reporte de uso eficiente de memoria
+    mem_kb = df.memory_usage(deep=True).sum() / 1024
+    print(f"[EXTRACCIÓN] ✓ Ingesta exitosa: {len(df)} filas y {len(df.columns)} columnas leídas ({mem_kb:.2f} KB en RAM).")
     return df

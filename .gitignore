@@ -1,23 +1,17 @@
-# Python / Cache
-__pycache__/
-*.py[cod]
-*$py.class
-
 # Entornos virtuales
+venv/
 .venv/
 env/
-venv/
-ENV/
 
-# IDEs y SO
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+
+# Archivos de salida y datasets (para no subir archivos pesados)
+data/output/*.parquet
+*.parquet
+
+# IDE / Configuración del editor
 .vscode/
 .idea/
 .DS_Store
-
-# DATOS: Ignorar datasets originales pesados y archivos de salida procesados
-data/raw/*
-!data/raw/.gitkeep
-data/output/*
-!data/output/.gitkeep
-*.csv
-*.parquet

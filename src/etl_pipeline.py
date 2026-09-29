@@ -1,7 +1,7 @@
 """
-Módulo Orquestador del Pipeline ETL (Extracción, Transformación y Carga).
-Importa la lógica modular de ingesta (src.extract), limpieza (src.transformations)
-y carga en formato Parquet (src.load).
+Módulo Orquestador del Pipeline ETL
+Importa las funciones modulares de extracción, transformación y carga
+para coordinar la ejecución del pipeline completo.
 """
 
 import pandas as pd
@@ -12,17 +12,7 @@ from src.load import cargar_datos_parquet
 
 def ejecutar_pipeline(input_path: str, output_path: str) -> pd.DataFrame:
     """
-    Ejecuta la secuencia completa e integrada del Pipeline ETL:
-    1. Ingesta desde CSV.
-    2. Limpieza de duplicados, normalización e imputación justificada de nulos.
-    3. Carga en archivo Parquet con justificación técnica para Machine Learning.
-    
-    Args:
-        input_path (str): Ruta al archivo de datos de origen (CSV).
-        output_path (str): Ruta donde se exportará el resultado (Parquet).
-        
-    Returns:
-        pd.DataFrame: DataFrame transformado resultante.
+    Ejecuta el Pipeline ETL modular completo.
     """
     print("\n" + "=" * 60)
     print(" INICIANDO EJECUCIÓN DEL PIPELINE ETL (VENTAS STARBUCKS)")
