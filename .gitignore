@@ -1,17 +1,26 @@
-# Entornos virtuales
+# Entornos virtuales y binarios
+py_env/
 venv/
-.venv/
+ENV/
 env/
 
-# Byte-compiled / cache files
+# Python Cache
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
-# Archivos de salida y datasets (para no subir archivos pesados)
-data/output/*.parquet
-*.parquet
+# Archivos de datos procesados pesados/temporales
+data/processed/*.parquet
 
-# IDE / Configuración del editor
+# Variables de entorno y credenciales
+.env
+*.env
+
+# IDE y Sistema
 .vscode/
 .idea/
 .DS_Store
+*.log
+get-pip.py

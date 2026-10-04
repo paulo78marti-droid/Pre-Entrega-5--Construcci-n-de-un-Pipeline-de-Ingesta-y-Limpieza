@@ -1,0 +1,16 @@
+ TransaccID , FECHA Compra ,Cliente ID,Precio Unitario ($),CANTIDAD,Categoria Producto , Metodo Pago 
+TX1001,2024-01-15,CUST_050,150.50,2,Electrónica,Tarjeta de Crédito
+TX1002,2024-01-15,CUST_051,45.00,1,Ropa,Efectivo
+TX1003,2024-01-16,CUST_052,,3,Hogar,Mercado Pago
+TX1004,2024-01-16,CUST_053,12.99,5,Ropa,
+TX1005,2024-01-17,CUST_054,890.00,1,,Tarjeta de Débito
+TX1001,2024-01-15,CUST_050,150.50,2,Electrónica,Tarjeta de Crédito
+TX1006,2024-01-18,,35.00,2,Hogar,Efectivo
+TX1007,2024-01-18,CUST_056,220.00,1,Electrónica,Tarjeta de Crédito
+TX1008,2024-01-19,CUST_057,15.75,4,Alimentos,Efectivo
+TX1009,2024-01-19,CUST_058,,1,Alimentos,
+TX1010,2024-01-20,CUST_059,500.00,2,Electrónica,Mercado Pago
+TX1002,2024-01-15,CUST_051,45.00,1,Ropa,Efectivo
+TX1011,2024-01-21,CUST_060,78.50,3,Ropa,Tarjeta de Débito
+TX1012,2024-01-21,CUST_061,1200.00,1,Electrónica,
+TX1013,2024-01-22,CUST_062,8.50,10,,Efectivo

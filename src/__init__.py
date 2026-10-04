@@ -1,4 +1,1 @@
-"""
-Módulo raíz de la lógica del Pipeline ETL.
-Data Science II - Pre-Entrega 5
-"""
+# Módulo src para el pipeline ETL de ingesta y limpieza de datos.

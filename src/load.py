@@ -1,56 +1,25 @@
-"""
-Módulo de Carga (Load) - Pipeline ETL
-Exporta el resultado procesado a un archivo en formato Parquet
-e incluye la justificación técnica de su uso en proyectos de Machine Learning.
-"""
-
 import os
 import pandas as pd
 
-
-def justificar_formato_parquet() -> str:
+def load_data(df: pd.DataFrame, output_path: str) -> None:
     """
-    Justificación técnica de por qué Parquet es el formato preferido para Machine Learning.
-    """
-    return (
-        "\n====================================================================================\n"
-        " 📊 JUSTIFICACIÓN TÉCNICA DEL FORMATO PARQUET EN MACHINE LEARNING\n"
-        "====================================================================================\n"
-        "1. ALMACENAMIENTO ORIENTADO A COLUMNAS:\n"
-        "   Parquet almacena los datos por columnas en lugar de por filas (como en CSV).\n"
-        "   Los algoritmos de Machine Learning suelen seleccionar columnas específicas (features).\n"
-        "   Parquet permite leer únicamente las columnas requeridas (projection pushdown),\n"
-        "   minimizando el uso de memoria RAM y acelerando la lectura (I/O).\n\n"
-        "2. PRESERVACIÓN DE ESQUEMA Y TIPOS DE DATOS:\n"
-        "   Parquet conserva los tipos de datos nativos (datetime, int, float, string).\n"
-        "   Evita la necesidad de re-inferir tipos o parsear texto cada vez que se carga el dataset.\n\n"
-        "3. ALTA COMPRESIÓN Y EFICIENCIA DE ESPACIO:\n"
-        "   Usa compresión columnar (ej. Snappy), logrando archivos significativamente más pequeños\n"
-        "   que los CSV planos (reducción entre 70% y 80% del peso en disco).\n\n"
-        "4. ESTÁNDAR INDUSTRIAL Y EFICIENCIA CON GRANDES VOLÚMENES:\n"
-        "   Es compatible de forma nativa con Pandas, PyArrow, Dask, Polars, PySpark y DuckDB.\n"
-        "====================================================================================\n"
-    )
+    Exporta el DataFrame limpio y transformado a un archivo en formato Parquet.
 
-
-def cargar_datos_parquet(df: pd.DataFrame, output_path: str) -> None:
+    Parametros:
+        df (pd.DataFrame): DataFrame transformado a guardar.
+        output_path (str): Ruta completa donde se guardara el archivo Parquet.
     """
-    Exporta el DataFrame transformado a un archivo Parquet.
-
-    Args:
-        df (pd.DataFrame): DataFrame limpio y transformado.
-        output_path (str): Ruta del archivo Parquet de salida.
-    """
-    print(f"[CARGA] Exportando datos procesados a Parquet en: '{output_path}'...")
+    print(f" Guardando datos procesados en formato Parquet...")
     
     # Crear directorio de salida si no existe
     output_dir = os.path.dirname(output_path)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
-        
-    # Guardar en formato Parquet
-    df.to_parquet(output_path, index=False, engine='pyarrow')
-    
-    size_kb = os.path.getsize(output_path) / 1024
-    print(f"[CARGA] ✓ Carga exitosa. Archivo Parquet generado ({size_kb:.2f} KB).")
-    print(justificar_formato_parquet())
+
+    # Exportacion a formato Parquet
+    df.to_parquet(output_path, index=False)
+
+    print(f" Exportacion completada con exito en:")
+    print(f"   -> {output_path}")
+    print(" Justificacion de Parquet: Formato columnar optimizado que reduce el espacio en disco,")
+    print("   acelera las lecturas en modelos de Machine Learning y conserva el tipo de datos nativo.\n")
