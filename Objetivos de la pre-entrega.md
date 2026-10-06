@@ -8,5 +8,4 @@ Respondé las siguientes preguntas:
 2. El código debe incluir una etapa de transformación que maneje valores nulos y duplicados.
 3. El script debe generar un archivo de salida en formato Parquet.
 4. El archivo README debe incluir instrucciones claras sobre cómo instalar dependencias y ejecutar el pipeline.
-5. El nivel del entregable debe ser de principiante inicisl de un curspo de data science nivel 2
-6. Crear un repositorio público en GitHub que contenga el código modular del pipeline de datos y un archivo README técnico.
+5. Crear un repositorio público en GitHub que contenga el código modular del pipeline de datos y un archivo README técnico.
